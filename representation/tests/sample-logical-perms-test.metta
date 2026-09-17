@@ -9,8 +9,13 @@
 
 !(py-call (random.seed 42))
 ;; Testcase for sample-logical-perms
-!(assertEqual (length (sampleLogicalPerms AND 2 (A B))) 4)
-!(assertEqual (length (sampleLogicalPerms OR 2 (A B))) 4)
+!(assertEqual (length (sampleLogicalPerms AND 2 (A B) (quote ()))) 4)
+!(assertEqual (length (sampleLogicalPerms OR 2 (A B) (quote ()))) 4)
+
+;; Testcase for logicalOpAllowed
+!(assertEqual (logicalOpAllowed AND ()) True)
+!(assertEqual (logicalOpAllowed AND (quote (AND))) False)
+
 
 ;; Action-domain permutation sampling (replaces the retired game-strategy
 ;; permutation cases). The action vocabulary rides as an ordinary argument --
@@ -30,13 +35,13 @@
 
 ;; Degenerate guards: single action, or empty perceptions, return the
 ;; vocabulary unchanged.
-!(assertEqual (sampleActionPerms (playwin) (canwin)) (playwin))
-!(assertEqual (sampleActionPerms (tttActs) ()) (playwin playblock playcenter playcorner playside))
+!(assertEqual (sampleActionPerms (playwin) (canwin) ()) (playwin))
+!(assertEqual (sampleActionPerms (tttActs) () ()) (playwin playblock playcenter playcorner playside))
 
 ;; Two-action vocabulary, one perception: pairCount 2 == sampleCount, so both
 ;; ordered pairs are produced deterministically after the two base actions.
 !(assertEqual
-  (let $perms (sampleActionPerms (playwin playblock) (canwin))
+  (let $perms (sampleActionPerms (playwin playblock) (canwin) ())
     ((length $perms)
      (car-atom $perms)
      (car-atom (cdr-atom $perms))
@@ -48,7 +53,7 @@
 ;; the five base actions in order followed by five pair permutations, each a
 ;; well-formed action_bool_if perm.
 !(assertEqual
-  (let $perms (sampleActionPerms (tttActs) (canwin canblock))
+  (let $perms (sampleActionPerms (tttActs) (canwin canblock) ())
     ((length $perms)
      (take 5 $perms)
      (map-atom (subtraction-atom $perms (tttActs)) $p (isActionPairPerm $p (tttActs) (canwin canblock)))))
